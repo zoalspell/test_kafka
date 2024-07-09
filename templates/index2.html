@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-Time Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        .status-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        .online {
+            color: green;
+        }
+        .working {
+            color: orange;
+        }
+        .offline {
+            color: red;
+        }
+        .table td, .table th {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Real-Time Dashboard</h1>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Bot</th>
+                        <th>Status</th>
+                        <th>Info</th>
+                        <th>Latest Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="mm_bot_1">
+                        <td>Market Maker Bot 1</td>
+                        <td><span class="status-icon" id="mm_bot_1_icon">🔴</span> <span class="status" id="mm_bot_1_status">Offline</span></td>
+                        <td><span class="info" id="mm_bot_1_info">No contact</span></td>
+                        <td><span class="update" id="mm_bot_1_update">-</span></td>
+                    </tr>
+                    <tr id="mm_bot_2">
+                        <td>Market Maker Bot 2</td>
+                        <td><span class="status-icon" id="mm_bot_2_icon">🔴</span> <span class="status" id="mm_bot_2_status">Offline</span></td>
+                        <td><span class="info" id="mm_bot_2_info">No contact</span></td>
+                        <td><span class="update" id="mm_bot_2_update">-</td>
+                    </tr>
+                    <tr id="mm_bot_3">
+                        <td>Market Maker Bot 3</td>
+                        <td><span class="status-icon" id="mm_bot_3_icon">🔴</span> <span class="status" id="mm_bot_3_status">Offline</span></td>
+                        <td><span class="info" id="mm_bot_3_info">No contact</span></td>
+                        <td><span class="update" id="mm_bot_3_update">-</td>
+                    </tr>
+                    <tr id="arb_bot_1">
+                        <td>Arbitrage Bot 1</td>
+                        <td><span class="status-icon" id="arb_bot_1_icon">🔴</span> <span class="status" id="arb_bot_1_status">Offline</span></td>
+                        <td><span class="info" id="arb_bot_1_info">No contact</span></td>
+                        <td><span class="update" id="arb_bot_1_update">-</td>
+                    </tr>
+                    <tr id="arb_bot_2">
+                        <td>Arbitrage Bot 2</td>
+                        <td><span class="status-icon" id="arb_bot_2_icon">🔴</span> <span class="status" id="arb_bot_2_status">Offline</span></td>
+                        <td><span class="info" id="arb_bot_2_info">No contact</span></td>
+                        <td><span class="update" id="arb_bot_2_update">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            function updateStatus(data) {
+                console.log('Received update for', data.bot, data.status, data.info, data.ts);  // For debugging
+                var botElement = $('#' + data.bot);
+                var statusIconElement = $('#' + data.bot + '_icon');
+                var statusTextElement = $('#' + data.bot + '_status');
+                var infoTextElement = $('#' + data.bot + '_info');
+                var updateTextElement = $('#' + data.bot + '_update');
+
+                // Convert Unix timestamp to JavaScript Date object and format it to UTC+7
+                var date = new Date((data.ts + 25200) * 1000);  // Convert to milliseconds and add 7 hours (25200 seconds)
+                var formattedDate = date.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });  // Format date to a human-readable string
+
+                statusTextElement.text(data.status.charAt(0).toUpperCase() + data.status.slice(1));
+                infoTextElement.text(data.info);
+                updateTextElement.text(formattedDate);
+
+                statusIconElement.removeClass('online working offline');
+                if (data.status === 'online') {
+                    statusIconElement.addClass('online');
+                    statusIconElement.text('🟢');
+                } else if (data.status === 'working') {
+                    statusIconElement.addClass('working');
+                    statusIconElement.text('🟡');
+                } else {
+                    statusIconElement.addClass('offline');
+                    statusIconElement.text('🔴');
+                }
+            }
+
+            socket.on('update_status', function(data) {
+                updateStatus(data);
+            });
+        });
+    </script>
+</body>
+</html>

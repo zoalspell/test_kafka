@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-Time Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        .role {
+            margin: 10px 0;
+        }
+        .tokens {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Dashboard</h1>
+    <div id="roles">
+        <div class="role" id="user_role">👤 User: <span id="user_count" class="tokens"></span></div>
+        <div class="role" id="guest_role">🌐 Guest: <span id="guest_count" class="tokens"></span></div>
+        <div class="role" id="mod_role">🔧 Mod: <span id="mod_count" class="tokens"></span></div>
+        <div class="role" id="admin_role">🔑 Admin: <span id="admin_count" class="tokens"></span></div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            function getColorIcon(tokens_count) {
+                if (tokens_count > 10) {
+                    return '🟢';
+                } else if (tokens_count >= 5) {
+                    return '🟡';
+                } else {
+                    return '🔴';
+                }
+            }
+
+            socket.on('new_data', function(data) {
+                var role = data.role.toLowerCase();
+                var tokens_count = data.tokens_count;
+                var elementId = role + "_count";
+                var colorIcon = getColorIcon(tokens_count);
+                $('#' + elementId).text('Tokens Count: ' + tokens_count + ' ' + colorIcon);
+            });
+        });
+    </script>
+</body>
+</html>
